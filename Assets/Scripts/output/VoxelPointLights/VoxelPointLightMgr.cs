@@ -363,6 +363,7 @@ namespace Arts.TA.VoxelPointLight
 
         public static string GetAssetPath()
         {
+
             var scene = EditorSceneManager.GetActiveScene();
             var path = $"{Path.GetDirectoryName(scene.path)}/{scene.name}";
 

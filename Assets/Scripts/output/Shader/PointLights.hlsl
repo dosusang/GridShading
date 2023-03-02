@@ -7,77 +7,77 @@
 #ifndef SHADER_API_GLES3
 CBUFFER_START(TOPointLights)
 #endif
-half _IfEnableVoxelPointLights;
-half4 _TOPointPosRange[MAX_TO_POINTS];
-half4 _TOPointColor[MAX_TO_POINTS];
-half4 _TPVoxelCenter;
-half4 _TPVoxelSize;
+float _IfEnableVoxelPointLights;
+float4 _TOPointPosRange[MAX_TO_POINTS];
+float4 _TOPointColor[MAX_TO_POINTS];
+float4 _TPVoxelCenter;
+float4 _TPVoxelSize;
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
 
 TEXTURE2D_FLOAT(_VoxelIdxMap);  SAMPLER(sampler_VoxelIdxMap);
 
-half TOPointDistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
+float TOPointDistanceAttenuation(float distanceSqr, float2 distanceAttenuation)
 {
-    half lightAtten = rcp(distanceSqr);
-    half factor = distanceSqr * distanceAttenuation.x;
-    half smoothFactor = saturate(1.0h - factor * factor);
+    float lightAtten = rcp(distanceSqr);
+    float factor = distanceSqr * distanceAttenuation.x;
+    float smoothFactor = saturate(1.0h - factor * factor);
     smoothFactor = smoothFactor * smoothFactor;
     return lightAtten * smoothFactor;
 }
 
-Light GetTOPointLight(uint idx, half3 positionWS)
+Light GetTOPointLight(uint idx, float3 positionWS)
 {
     Light l;
     l.color = _TOPointColor[idx].xyz;
-    half3 vec = _TOPointPosRange[idx].xyz - positionWS;
+    float3 vec = _TOPointPosRange[idx].xyz - positionWS;
     l.direction = normalize(vec);
 
-    half distSqr = max(dot(vec, vec), 0.01);
-    half2 attenuation = half2(_TOPointPosRange[idx].w, _TOPointColor[idx].w);
+    float distSqr = max(dot(vec, vec), 0.01);
+    float2 attenuation = float2(_TOPointPosRange[idx].w, _TOPointColor[idx].w);
 
-    half atten = TOPointDistanceAttenuation(distSqr, attenuation.xy);
+    float atten = TOPointDistanceAttenuation(distSqr, attenuation.xy);
     
     l.distanceAttenuation = atten;
     l.shadowAttenuation = 1;
     return l;
 }
 
-uint GetCount(half4 sample)
+uint GetCount(float4 sample)
 {
     uint x = sample.a * 256;
     return clamp(0, 7, x);
 }
 
-uint MyRound(half x)
+uint MyRound(float x)
 {
     return (x + 0.5);
 }
             
-void ShadingTOPointLight(inout half3 color, BRDFData brdfData, InputData input)
+void ShadingTOPointLight(inout float3 color, BRDFData brdfData, InputData input)
 {
     if(_IfEnableVoxelPointLights < 0.1) return;
     // return;
-    int yIdx = (input.positionWS.y - _TPVoxelCenter.y) / (_TPVoxelSize.y * 0.25h) + 2;
+    uint yIdx = (input.positionWS.y - _TPVoxelCenter.y) / (_TPVoxelSize.y * 0.25h) + 2;
     yIdx = clamp(0, 3, yIdx);
     // color.r = yIdx / 4.0;
     // return;
     
-    half2 uv =  ((input.positionWS.xz - _TPVoxelCenter.xz)) / (_TPVoxelSize.xz) + 0.5h;
+    float2 uv =  ((input.positionWS.xz - _TPVoxelCenter.xz)) / (_TPVoxelSize.xz) + 0.5h;
     uv = uv * 0.5h;
-    uv += half2(0.5h, 0.5h) * half2(yIdx / 2, yIdx % 2);
-    half4 idxMapSample = SAMPLE_TEXTURE2D(_VoxelIdxMap, sampler_VoxelIdxMap, uv);
+    uv += float2(0.5h, 0.5h) * float2(yIdx / 2, yIdx % 2);
+    float4 idxMapSample = SAMPLE_TEXTURE2D(_VoxelIdxMap, sampler_VoxelIdxMap, uv);
     uint count = GetCount(idxMapSample);
     // color.rgb = input.normalWS;
     // color.rgb = idxMapSample;
     // return;
     //
-    // color.rgb = half3(uv, 0);
+    // color.rgb = float3(uv, 0);
     // return;
     
-    // color.rgb = (half)count / 8;
-    // return;
+
+
 
     uint idx[7];
     idx[0] = MyRound(idxMapSample.r * 65536.0f) & 0x00FF;
