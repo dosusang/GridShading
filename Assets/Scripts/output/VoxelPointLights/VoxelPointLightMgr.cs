@@ -381,7 +381,7 @@ namespace Arts.TA.VoxelPointLight
             tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (tex == null || tex.texelSize.x != GridCount)
             {
-                tex = new Texture2D(GridCount, GridCount, TextureFormat.RGBA64, false);
+                tex = new Texture2D(GridCount, GridCount, TextureFormat.RGBAFloat, false);
                 tex.anisoLevel = 0;
                 tex.filterMode = FilterMode.Point;
                 tex.wrapMode = TextureWrapMode.Clamp;
